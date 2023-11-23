@@ -19,6 +19,15 @@ contract ENSMarket {
     }
 
     /**
+     * @notice Check if an ENS name is available.
+     * @param name The ENS name to check.
+     * @return True if the name is available, false otherwise.
+     */
+    function isAvailableName(string calldata name) external returns (bool) {
+        return i_IETHRC.available(name);
+    }
+
+    /**
      * @notice Renew an ENS name.
      * @param name The ENS name to renew.
      */
@@ -27,15 +36,6 @@ contract ENSMarket {
     //     require(msg.value >= namePrice, "Insufficient funds for renewal");
     //     CONTROLLER.renew{value: namePrice}(name, renewalDuration);
     // }
-
-    /**
-     * @notice Check if an ENS name is available.
-     * @param name The ENS name to check.
-     * @return True if the name is available, false otherwise.
-     */
-    function isAvailableName(string calldata name) external returns (bool) {
-        return i_IETHRC.available(name);
-    }
 
     /**
      * @notice Register an ENS name.
