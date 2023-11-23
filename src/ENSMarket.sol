@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
+import {IPriceOracle} from "@ensdomains/ethregistrar/IPriceOracle.sol";
 import {IETHRegistrarController as IETHRC} from "@ensdomains/ethregistrar/IETHRegistrarController.sol";
 
 /**
@@ -31,11 +32,23 @@ contract ENSMarket {
      * @notice Renew an ENS name.
      * @param name The ENS name to renew.
      */
-    // function renew(string calldata name) external payable {
-    //     uint256 namePrice = CONTROLLER.rentPrice(name, renewalDuration).amount;
-    //     require(msg.value >= namePrice, "Insufficient funds for renewal");
-    //     CONTROLLER.renew{value: namePrice}(name, renewalDuration);
-    // }
+    function renew(string calldata name) external payable {
+        IPriceOracle.Price memory namePrice = i_IETHRC.rentPrice(
+            name,
+            renewalDuration
+        );
+
+        uint256 cost = namePrice.base + namePrice.premium;
+
+        require(msg.value >= (cost), "insufficient funds for renewal");
+        i_IETHRC.renew{value: cost}(name, renewalDuration);
+    }
+
+    function getRentPrice(
+        string calldata name
+    ) external view returns (IPriceOracle.Price memory) {
+        return i_IETHRC.rentPrice(name, renewalDuration);
+    }
 
     /**
      * @notice Register an ENS name.

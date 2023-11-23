@@ -6,7 +6,7 @@ import {Script} from "forge-std/Script.sol";
 // 1. Deploy mocks when we are on a local chain
 // 2. Keep track of contract addresses across different chains
 
-contract HelperConfig {
+contract HelperConfig is Script {
     NetworkConfig public activeNetworkConfig;
 
     struct NetworkConfig {
@@ -39,7 +39,10 @@ contract HelperConfig {
         return sepoliaConfig;
     }
 
-    function getAnvilConfig() public pure returns (NetworkConfig memory) {
+    function getAnvilConfig() public returns (NetworkConfig memory) {
         // get ETHRegistrarController address
+
+        vm.startBroadcast();
+        vm.stopBroadcast();
     }
 }
