@@ -6,7 +6,6 @@ import {IETHRegistrarController as IETHRC} from "@ensdomains/ethregistrar/IETHRe
 
 /**
  * @title EN$Market
- * @dev Based on Wary's SelfRepayingENS
  */
 contract ENSMarket {
     /**
@@ -29,8 +28,39 @@ contract ENSMarket {
     }
 
     /**
+     * @notice Check if several individual ENS names are available.
+     * @param names The ENS names to check.
+     * @return Array of bool (bool[]), each item T/F based on availability of each name in `names`.
+     */
+    function isEachAvailableNames(
+        string[] calldata names
+    ) external returns (bool[] memory) {
+        bool[] memory available = new bool[](names.length);
+
+        for (uint256 i = 0; i < names.length; i++) {
+            available[i] = i_IETHRC.available(names[i]);
+        }
+
+        return available;
+    }
+
+    /**
+     * @notice Check if several ENS names are available at once.
+     * @param names The ENS names to check.
+     * @return bool T/F if all names[i] available
+     */
+    function isAllAvailableNames(
+        string[] calldata names
+    ) external returns (bool) {
+        for (uint256 i = 0; i < names.length; i++) {
+            i_IETHRC.available(names[i]);
+        }
+    }
+
+    /**
      * @notice Renew an ENS name.
      * @param name The ENS name to renew.
+     * @dev When calling, must provide msg.value greater than or equal to rent price of Price Oracle
      */
     function renew(string calldata name) external payable {
         IPriceOracle.Price memory namePrice = i_IETHRC.rentPrice(
@@ -44,26 +74,17 @@ contract ENSMarket {
         i_IETHRC.renew{value: cost}(name, renewalDuration);
     }
 
+    /**
+     * @notice View prie to rent an ENS name.
+     * @param name The ENS name to rent.
+     * @return Price from the ENS: PriceOracle to rent name for `renewalDuration`
+     * @dev When calling, must provide msg.value greater than or equal to rent price of Price Oracle
+     */
     function getRentPrice(
         string calldata name
     ) external view returns (IPriceOracle.Price memory) {
         return i_IETHRC.rentPrice(name, renewalDuration);
     }
-
-    /**
-     * @notice Register an ENS name.
-     * @param name The ENS name to register.
-     */
-    // function register(string calldata name) external payable {
-    //     require(CONTROLLER.available(name), "Name is not available");
-    //     uint256 namePrice = CONTROLLER.rentPrice(name, renewalDuration).amount;
-    //     require(msg.value >= namePrice, "Insufficient funds for registration");
-    //     CONTROLLER.register{value: namePrice}(
-    //         name,
-    //         address(this), // Set the buyer as the registrant
-    //         renewalDuration
-    //     );
-    // }
 
     /**
      * @notice To receive ETH payments.

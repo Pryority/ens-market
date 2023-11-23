@@ -9,7 +9,6 @@ import {DeployENSMarket} from "../script/DeployENSMarket.s.sol";
 
 contract ENSMarketTest is Test {
     ENSMarket market;
-    // IETHRC immutable i_IETHRC = IETHRC(0x253553366Da8546fC250F225fe3d25d0C782303b);
     address alice;
     uint256 mainnetFork;
 
@@ -23,7 +22,25 @@ contract ENSMarketTest is Test {
         alice = makeAddr("alice");
     }
 
-    function test_available() public {
+    function test_isAllAvailableNames() public {
+        string[] memory names = new string[](2);
+        names[0] = "nick";
+        names[1] = "vitalik";
+        assertFalse(market.isAllAvailableNames(names));
+    }
+
+    function test_isEachAvailableNames() public {
+        assertEq(vm.activeFork(), mainnetFork);
+        string[] memory names = new string[](2);
+        names[0] = "nick";
+        names[1] = "vitalik";
+        bool[] memory available = market.isEachAvailableNames(names);
+        for (uint256 i = 0; i < available.length; i++) {
+            assertEq(false, available[i]);
+        }
+    }
+
+    function test_isAvailableName() public {
         string memory name = "nick";
         assertFalse(market.isAvailableName(name));
     }
@@ -31,41 +48,8 @@ contract ENSMarketTest is Test {
     function test_renew() public {
         assertEq(vm.activeFork(), mainnetFork);
         string memory name = "nick";
-        IPriceOracle.Price memory price = market.getRentPrice(name); // vm.startPrank(0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5);
+        IPriceOracle.Price memory price = market.getRentPrice(name);
         uint256 cost = price.base + price.premium;
         market.renew{value: cost}(name);
     }
-
-    // function test_renew() public {
-    //     // Ensure the contract is deployed successfully
-    //     assertEq(
-    //         address(market).balance,
-    //         0,
-    //         "Initial contract balance should be 0"
-    //     );
-
-    //     // Perform a renew with a valid name and sufficient value
-    //     string memory validName = "example.eth";
-    //     uint256 namePrice = market.CONTROLLER.rentPrice(
-    //         validName,
-    //         market.renewalDuration()
-    //     );
-    //     market.renew{value: namePrice}(validName);
-
-    //     // Assert that the renew function was successful
-    //     assertEq(
-    //         address(market).balance,
-    //         namePrice,
-    //         "Contract balance should be equal to the name price"
-    //     );
-
-    //     // Perform a renew with an invalid name (this should revert)
-    //     string memory invalidName = "invalid.eth";
-    //     bool success = market.call{value: namePrice}(
-    //         abi.encodeWithSignature("renew(string)", invalidName)
-    //     );
-
-    //     // Assert that the renew with an invalid name reverted
-    //     assertTrue(!success, "Renew with invalid name should revert");
-    // }
 }
