@@ -58,6 +58,7 @@ Traces:
 And then, here is the stack trace of the isAvailableName() method being tested. This test passes because when compiling and running the test, I specified the **--fork-url** flag that provides a RPC URL to simulate the transaction(s) in the test that are coming from [ENSMarket.t.sol](https://github.com/Pryority/ens-market/blob/main/test/ENSMarket.t.sol):
 
 ```zshrc
+  [PASS] test_available() (gas: 16915)
     [16915] ENSMarketTest::test_available()
     ├─ [11200] ENSMarket::isAvailableName("nick")
     │   ├─ [7709] 0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72::available("nick")
