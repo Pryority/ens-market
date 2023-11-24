@@ -12,10 +12,10 @@ contract DeployENSMarket is Script {
         // Before startBroadcast -> Not a real 'tx'
         HelperConfig helperConfig = new HelperConfig();
         /** @dev If more values like other contracts are returned from the NetworkConfig, make this a tuple and target the returned values */
-        address ethrc = helperConfig.activeNetworkConfig();
+        (address ethrc, address nw) = helperConfig.activeNetworkConfig();
         // After startBroadcast -> Real tx
         vm.startBroadcast();
-        ENSMarket market = new ENSMarket(ethrc);
+        ENSMarket market = new ENSMarket(ethrc, nw);
         vm.stopBroadcast();
         return market;
     }

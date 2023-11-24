@@ -11,6 +11,7 @@ contract HelperConfig is Script {
 
     struct NetworkConfig {
         address ethrc;
+        address nw;
     }
 
     constructor() {
@@ -26,7 +27,8 @@ contract HelperConfig is Script {
     function getMainnetConfig() public pure returns (NetworkConfig memory) {
         // get ETHRegistrarController address
         NetworkConfig memory mainnetConfig = NetworkConfig({
-            ethrc: 0x253553366Da8546fC250F225fe3d25d0C782303b
+            ethrc: 0x253553366Da8546fC250F225fe3d25d0C782303b,
+            nw: 0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401
         });
         return mainnetConfig;
     }
@@ -34,7 +36,8 @@ contract HelperConfig is Script {
     function getSepoliaConfig() public pure returns (NetworkConfig memory) {
         // get ETHRegistrarController address
         NetworkConfig memory sepoliaConfig = NetworkConfig({
-            ethrc: 0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72
+            ethrc: 0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72,
+            nw: 0x0635513f179D50A207757E05759CbD106d7dFcE8
         });
         return sepoliaConfig;
     }

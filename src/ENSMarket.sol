@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IPriceOracle} from "@ensdomains/ethregistrar/IPriceOracle.sol";
 import {IETHRegistrarController as IETHRC} from "@ensdomains/ethregistrar/IETHRegistrarController.sol";
+import {INameWrapper as INW} from "@ensdomains/wrapper/INameWrapper.sol";
 error ResolverRequiredWhenDataSupplied();
 
 /**
@@ -14,9 +15,11 @@ contract ENSMarket {
      */
     uint256 constant renewalDuration = 31536000;
     IETHRC immutable i_IETHRC;
+    INW immutable i_INW;
 
-    constructor(address _IETHERC) payable {
+    constructor(address _IETHERC, address _INW) payable {
         i_IETHRC = IETHRC(_IETHERC);
+        i_INW = INW(_INW);
     }
 
     function createCommitment(
