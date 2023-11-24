@@ -25,6 +25,7 @@ contract ENSMarket {
     IETHRC public immutable i_IETHRC;
     INW public immutable i_INW;
     IBR immutable i_IBR;
+    mapping(bytes32 => uint256) public commitments;
 
     constructor(address _IETHERC, address _INW, address _IBR) payable {
         i_IETHRC = IETHRC(_IETHERC);
@@ -50,7 +51,7 @@ contract ENSMarket {
             revert InsufficientValue();
         }
 
-        i_IETHRC.register{value: cost}(
+        i_IETHRC.register{value: msg.value}(
             name,
             owner,
             duration,
@@ -89,6 +90,10 @@ contract ENSMarket {
                     ownerControlledFuses
                 )
             );
+    }
+
+    function commit(bytes32 commitHash) public payable {
+        i_IETHRC.commit(commitHash);
     }
 
     /**

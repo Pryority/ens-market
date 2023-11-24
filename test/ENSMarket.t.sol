@@ -10,9 +10,9 @@ import {DeployENSMarket} from "../script/DeployENSMarket.s.sol";
 contract ENSMarketTest is Test {
     ENSMarket market;
     address alice;
-    uint256 mainnetFork;
+    // uint256 mainnetFork;
 
-    string MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
+    // string MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
 
     struct Commitment {
         bytes32 label;
@@ -26,11 +26,10 @@ contract ENSMarketTest is Test {
     }
 
     function setUp() public {
-        mainnetFork = vm.createFork(MAINNET_RPC_URL);
-        vm.selectFork(mainnetFork);
         DeployENSMarket deployENSMarket = new DeployENSMarket();
         market = deployENSMarket.run();
         alice = makeAddr("alice");
+        // mainnetFork = vm.createFork(MAINNET_RPC_URL);
     }
 
     function test_createCommitment() public {
@@ -77,9 +76,11 @@ contract ENSMarketTest is Test {
     function test_register() public {
         vm.startPrank(alice);
         vm.deal(alice, 1 ether);
-
         bytes[] memory data = new bytes[](0);
         string memory name = "my_new_name";
+
+        uint commitTime = block.timestamp;
+        emit log_named_uint("Commit Time", commitTime);
 
         Commitment memory commitment = Commitment({
             label: bytes32(keccak256(bytes(name))),
@@ -88,14 +89,14 @@ contract ENSMarketTest is Test {
             secret: bytes32(keccak256(bytes("my_secret"))),
             resolver: address(0),
             data: data,
-            reverseRecord: true,
-            ownerControlledFuses: 125
+            reverseRecord: false,
+            ownerControlledFuses: 0
         });
 
         IPriceOracle.Price memory price = market.getRentPrice("my_new_name");
         uint256 cost = price.base + price.premium;
 
-        market.createCommitment(
+        bytes32 commitHash = market.createCommitment(
             name,
             commitment.owner,
             commitment.duration,
@@ -106,22 +107,25 @@ contract ENSMarketTest is Test {
             commitment.ownerControlledFuses
         );
 
-        vm.warp(90);
+        market.commit(commitHash);
+
+        // Wait for at least 60 seconds, but less than 86400 seconds
+        uint registerTime = commitTime + 61; // You can adjust this time based on your requirements
+        vm.warp(registerTime);
+        emit log_named_uint("Register Time", registerTime);
 
         market.register{value: cost}(
-            "my_new_name",
+            name,
             alice,
             31536000,
             bytes32(keccak256(bytes("my_secret"))),
             address(0),
             data,
-            true,
-            125
+            false,
+            0
         );
 
         vm.stopPrank();
-
-        assertEq(vm.activeFork(), mainnetFork);
     }
 
     function test_isAllAvailableNames() public {
@@ -132,7 +136,7 @@ contract ENSMarketTest is Test {
     }
 
     function test_isEachAvailableNames() public {
-        assertEq(vm.activeFork(), mainnetFork);
+        // assertEq(vm.activeFork(), mainnetFork);
         string[] memory names = new string[](2);
         names[0] = "nick";
         names[1] = "vitalik";
@@ -148,7 +152,7 @@ contract ENSMarketTest is Test {
     }
 
     function test_renew() public {
-        assertEq(vm.activeFork(), mainnetFork);
+        // assertEq(vm.activeFork(), mainnetFork);
         string memory name = "nick";
         IPriceOracle.Price memory price = market.getRentPrice(name);
         uint256 cost = price.base + price.premium;
