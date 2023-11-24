@@ -25,7 +25,6 @@ contract ENSMarket {
     IETHRC public immutable i_IETHRC;
     INW public immutable i_INW;
     IBR immutable i_IBR;
-    mapping(bytes32 => uint256) public commitments;
 
     constructor(address _IETHERC, address _INW, address _IBR) payable {
         i_IETHRC = IETHRC(_IETHERC);
@@ -33,6 +32,7 @@ contract ENSMarket {
         i_IBR = IBR(_IBR);
     }
 
+    // 23288 needed
     function register(
         string calldata name,
         address owner,
@@ -120,19 +120,6 @@ contract ENSMarket {
         }
 
         return available;
-    }
-
-    /**
-     * @notice Check if several ENS names are available at once.
-     * @param names The ENS names to check.
-     * @return bool T/F if all names[i] available
-     */
-    function isAllAvailableNames(
-        string[] calldata names
-    ) external returns (bool) {
-        for (uint256 i = 0; i < names.length; i++) {
-            i_IETHRC.available(names[i]);
-        }
     }
 
     /**
