@@ -16,8 +16,6 @@ contract ENSMarket {
     /**
      * @notice The ENS name renewal duration in seconds.
      */
-    // uint64 private constant GRACE_PERIOD = 90 days;
-
     uint256 constant RENEWAL_DURATION = 31536000;
     uint256 public constant MIN_REGISTRATION_DURATION = 28 days;
     bytes32 private constant ETH_NODE =
@@ -27,9 +25,6 @@ contract ENSMarket {
     IETHRC public immutable i_IETHRC;
     INW public immutable i_INW;
     IBR immutable i_IBR;
-
-    // uint256 public immutable i_minCommitmentAge;
-    // uint256 public immutable i_maxCommitmentAge;
 
     constructor(address _IETHERC, address _INW, address _IBR) payable {
         i_IETHRC = IETHRC(_IETHERC);
