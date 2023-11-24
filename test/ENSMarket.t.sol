@@ -14,12 +14,64 @@ contract ENSMarketTest is Test {
 
     string MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
 
+    struct Commitment {
+        bytes32 label;
+        address owner;
+        uint256 duration;
+        bytes32 secret;
+        address resolver;
+        bytes[] data;
+        bool reverseRecord;
+        uint16 ownerControlledFuses;
+    }
+
     function setUp() public {
         mainnetFork = vm.createFork(MAINNET_RPC_URL);
         vm.selectFork(mainnetFork);
         DeployENSMarket deployENSMarket = new DeployENSMarket();
         market = deployENSMarket.run();
         alice = makeAddr("alice");
+    }
+
+    function test_createCommitment() public {
+        bytes[] memory data = new bytes[](0);
+
+        Commitment memory commitment = Commitment({
+            label: bytes32(keccak256(bytes("my_new_name"))),
+            owner: alice,
+            duration: 31536000,
+            secret: bytes32(keccak256(bytes("my_secret"))),
+            resolver: address(0),
+            data: data,
+            reverseRecord: true,
+            ownerControlledFuses: 0
+        });
+
+        bytes32 commitmentHash = keccak256(
+            abi.encode(
+                commitment.label,
+                commitment.owner,
+                commitment.duration,
+                commitment.secret,
+                commitment.resolver,
+                commitment.data,
+                commitment.reverseRecord,
+                commitment.ownerControlledFuses
+            )
+        );
+
+        bytes32 expectedCommitmentHash = market.createCommitment(
+            "my_new_name",
+            commitment.owner,
+            commitment.duration,
+            commitment.secret,
+            commitment.resolver,
+            commitment.data,
+            commitment.reverseRecord,
+            commitment.ownerControlledFuses
+        );
+
+        assertEq(commitmentHash, expectedCommitmentHash);
     }
 
     function test_isAllAvailableNames() public {

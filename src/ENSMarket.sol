@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IPriceOracle} from "@ensdomains/ethregistrar/IPriceOracle.sol";
 import {IETHRegistrarController as IETHRC} from "@ensdomains/ethregistrar/IETHRegistrarController.sol";
+error ResolverRequiredWhenDataSupplied();
 
 /**
  * @title EN$Market
@@ -11,11 +12,40 @@ contract ENSMarket {
     /**
      * @notice The ENS name renewal duration in seconds.
      */
-    uint256 constant renewalDuration = 365 days;
+    uint256 constant renewalDuration = 31536000;
     IETHRC immutable i_IETHRC;
 
     constructor(address _IETHERC) payable {
         i_IETHRC = IETHRC(_IETHERC);
+    }
+
+    function createCommitment(
+        string memory name,
+        address owner,
+        uint256 duration,
+        bytes32 secret,
+        address resolver,
+        bytes[] calldata data,
+        bool reverseRecord,
+        uint16 ownerControlledFuses
+    ) external pure returns (bytes32) {
+        bytes32 label = keccak256(bytes(name));
+        if (data.length > 0 && resolver == address(0)) {
+            revert ResolverRequiredWhenDataSupplied();
+        }
+        return
+            keccak256(
+                abi.encode(
+                    label,
+                    owner,
+                    duration,
+                    secret,
+                    resolver,
+                    data,
+                    reverseRecord,
+                    ownerControlledFuses
+                )
+            );
     }
 
     /**
