@@ -4,7 +4,10 @@ pragma solidity ^0.8.20;
 import {IPriceOracle} from "@ensdomains/ethregistrar/IPriceOracle.sol";
 import {IETHRegistrarController as IETHRC} from "@ensdomains/ethregistrar/IETHRegistrarController.sol";
 import {INameWrapper as INW} from "@ensdomains/wrapper/INameWrapper.sol";
+import {IBaseRegistrar as IBR} from "@ensdomains/ethregistrar/IBaseRegistrar.sol";
+
 error ResolverRequiredWhenDataSupplied();
+error InsufficientValue();
 
 /**
  * @title EN$Market
@@ -13,13 +16,55 @@ contract ENSMarket {
     /**
      * @notice The ENS name renewal duration in seconds.
      */
-    uint256 constant renewalDuration = 31536000;
-    IETHRC immutable i_IETHRC;
-    INW immutable i_INW;
+    // uint64 private constant GRACE_PERIOD = 90 days;
 
-    constructor(address _IETHERC, address _INW) payable {
+    uint256 constant RENEWAL_DURATION = 31536000;
+    uint256 public constant MIN_REGISTRATION_DURATION = 28 days;
+    bytes32 private constant ETH_NODE =
+        0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
+    uint64 private constant MAX_EXPIRY = type(uint64).max;
+
+    IETHRC public immutable i_IETHRC;
+    INW public immutable i_INW;
+    IBR immutable i_IBR;
+
+    // uint256 public immutable i_minCommitmentAge;
+    // uint256 public immutable i_maxCommitmentAge;
+
+    constructor(address _IETHERC, address _INW, address _IBR) payable {
         i_IETHRC = IETHRC(_IETHERC);
         i_INW = INW(_INW);
+        i_IBR = IBR(_IBR);
+    }
+
+    function register(
+        string calldata name,
+        address owner,
+        uint256 duration,
+        bytes32 secret,
+        address resolver,
+        bytes[] calldata data,
+        bool reverseRecord,
+        uint16 ownerControlledFuses
+    ) public payable {
+        IPriceOracle.Price memory price = getRentPriceInternal(name);
+
+        uint256 cost = price.base + price.premium;
+
+        if (msg.value < cost) {
+            revert InsufficientValue();
+        }
+
+        i_IETHRC.register{value: cost}(
+            name,
+            owner,
+            duration,
+            secret,
+            resolver,
+            data,
+            reverseRecord,
+            ownerControlledFuses
+        );
     }
 
     function createCommitment(
@@ -98,25 +143,31 @@ contract ENSMarket {
     function renew(string calldata name) external payable {
         IPriceOracle.Price memory namePrice = i_IETHRC.rentPrice(
             name,
-            renewalDuration
+            RENEWAL_DURATION
         );
 
         uint256 cost = namePrice.base + namePrice.premium;
 
         require(msg.value >= (cost), "insufficient funds for renewal");
-        i_IETHRC.renew{value: cost}(name, renewalDuration);
+        i_IETHRC.renew{value: cost}(name, RENEWAL_DURATION);
     }
 
     /**
      * @notice View prie to rent an ENS name.
      * @param name The ENS name to rent.
-     * @return Price from the ENS: PriceOracle to rent name for `renewalDuration`
+     * @return Price from the ENS: PriceOracle to rent name for `RENEWAL_DURATION`
      * @dev When calling, must provide msg.value greater than or equal to rent price of Price Oracle
      */
     function getRentPrice(
         string calldata name
     ) external view returns (IPriceOracle.Price memory) {
-        return i_IETHRC.rentPrice(name, renewalDuration);
+        return i_IETHRC.rentPrice(name, RENEWAL_DURATION);
+    }
+
+    function getRentPriceInternal(
+        string calldata name
+    ) internal view returns (IPriceOracle.Price memory) {
+        return i_IETHRC.rentPrice(name, RENEWAL_DURATION);
     }
 
     /**

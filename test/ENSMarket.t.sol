@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {IETHRegistrarController as IETHRC} from "@ensdomains/ethregistrar/IETHRegistrarController.sol";
@@ -72,6 +72,56 @@ contract ENSMarketTest is Test {
         );
 
         assertEq(commitmentHash, expectedCommitmentHash);
+    }
+
+    function test_register() public {
+        vm.startPrank(alice);
+        vm.deal(alice, 1 ether);
+
+        bytes[] memory data = new bytes[](0);
+        string memory name = "my_new_name";
+
+        Commitment memory commitment = Commitment({
+            label: bytes32(keccak256(bytes(name))),
+            owner: alice,
+            duration: 31536000,
+            secret: bytes32(keccak256(bytes("my_secret"))),
+            resolver: address(0),
+            data: data,
+            reverseRecord: true,
+            ownerControlledFuses: 125
+        });
+
+        IPriceOracle.Price memory price = market.getRentPrice("my_new_name");
+        uint256 cost = price.base + price.premium;
+
+        market.createCommitment(
+            name,
+            commitment.owner,
+            commitment.duration,
+            commitment.secret,
+            commitment.resolver,
+            commitment.data,
+            commitment.reverseRecord,
+            commitment.ownerControlledFuses
+        );
+
+        vm.warp(90);
+
+        market.register{value: cost}(
+            "my_new_name",
+            alice,
+            31536000,
+            bytes32(keccak256(bytes("my_secret"))),
+            address(0),
+            data,
+            true,
+            125
+        );
+
+        vm.stopPrank();
+
+        assertEq(vm.activeFork(), mainnetFork);
     }
 
     function test_isAllAvailableNames() public {
