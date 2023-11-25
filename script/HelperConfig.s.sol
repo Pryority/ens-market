@@ -50,5 +50,12 @@ contract HelperConfig is Script {
 
         vm.startBroadcast();
         vm.stopBroadcast();
+        NetworkConfig memory anvilConfig = NetworkConfig({
+            ethrc: 0x253553366Da8546fC250F225fe3d25d0C782303b,
+            nw: 0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401,
+            br: 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85
+        });
+
+        return anvilConfig;
     }
 }

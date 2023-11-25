@@ -122,6 +122,8 @@ contract ENSMarketTest is Test {
         );
 
         vm.stopPrank();
+
+        assertFalse(market.isAvailableName(name));
     }
 
     function test_isAvailableName() public {
