@@ -9,7 +9,7 @@ import {DeployENSMarket} from "../script/DeployENSMarket.s.sol";
 
 contract ENSMarketTest is Test {
     ENSMarket market;
-    address alice;
+    address alice = makeAddr("alice");
 
     struct Commitment {
         bytes32 label;
@@ -23,9 +23,8 @@ contract ENSMarketTest is Test {
     }
 
     function setUp() public {
-        DeployENSMarket deployENSMarket = new DeployENSMarket();
-        market = deployENSMarket.run();
-        alice = makeAddr("alice");
+        DeployENSMarket deployedENSMarket = new DeployENSMarket();
+        market = deployedENSMarket.run();
     }
 
     function test_createCommitment() public {
